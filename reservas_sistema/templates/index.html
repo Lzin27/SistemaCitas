@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Reservas - Demo</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body{font-family:Arial;max-width:900px;margin:20px auto;padding:10px}
+    table{width:100%;border-collapse:collapse}
+    th,td{border:1px solid #ddd;padding:8px;text-align:left}
+    form input, form select{padding:6px;margin-right:6px}
+    button{padding:6px 10px;margin:2px}
+  </style>
+</head>
+<body>
+  <h1>Reservas</h1>
+
+  <h3>Crear nueva reserva</h3>
+  <form id="createForm">
+    <input required name="customer_name" placeholder="Nombre del cliente" />
+    <input required name="date" type="datetime-local" />
+    <input required name="service" placeholder="Servicio (ej: Corte de pelo)" />
+    <select name="status">
+      <option value="pendiente">Pendiente</option>
+      <option value="confirmada">Confirmada</option>
+      <option value="cancelada">Cancelada</option>
+    </select>
+    <button type="submit">Crear</button>
+  </form>
+
+  <h3>Lista de reservas</h3>
+  <table id="table">
+    <thead><tr><th>Cliente</th><th>Servicio</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr></thead>
+    <tbody></tbody>
+  </table>
+
+<script>
+const API = '/api/reservations/';
+
+async function loadReservations(){
+  const res = await fetch(API);
+  const data = await res.json();
+  const tbody = document.querySelector('#table tbody');
+  tbody.innerHTML = '';
+  data.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${r.customer_name}</td>
+      <td>${r.service}</td>
+      <td>${new Date(r.date).toLocaleString()}</td>
+      <td>${r.status}</td>
+      <td>
+        <button onclick="changeStatus(${r.id}, 'confirmada')">Confirmar</button>
+        <button onclick="changeStatus(${r.id}, 'pendiente')">Pendiente</button>
+        <button onclick="changeStatus(${r.id}, 'cancelada')">Cancelar</button>
+        <button onclick="deleteReservation(${r.id})">Eliminar</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+document.getElementById('createForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const f = e.target;
+  const body = {
+    customer_name: f.customer_name.value,
+    date: new Date(f.date.value).toISOString(),
+    service: f.service.value,
+    status: f.status.value
+  };
+  const res = await fetch(API, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  });
+  if(res.ok){ f.reset(); loadReservations(); } else { alert('Error al crear'); }
+});
+
+async function deleteReservation(id){
+  if(!confirm('Eliminar reserva #'+id+' ?')) return;
+  const res = await fetch(API+id+'/', { method: 'DELETE' });
+  if(res.ok) loadReservations(); else alert('Error al eliminar');
+}
+
+async function changeStatus(id, status){
+  const res = await fetch(API+id+'/change_status/', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({status})
+  });
+  if(res.ok) loadReservations(); else alert('Error al cambiar estado');
+}
+
+window.onload = loadReservations;
+</script>
+</body>
+</html>
