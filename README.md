@@ -1,5 +1,5 @@
 
-## 📋 Diagramas de Arquitectura
+##  Diagramas de Arquitectura
 Integrantes: 
 Leonardo 
 Jhordan 
