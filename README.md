@@ -1,8 +1,8 @@
 
 ##  Diagramas de Arquitectura
 Integrantes: 
-Leonardo 
-Jhordan 
+Leonardo Ramos 
+Jhordan Ramos
 Milagros Leyva 
 
 ## Descripción
